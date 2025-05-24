@@ -7,23 +7,18 @@ const PEXELS_API_KEY = import.meta.env.VITE_PEXELS_API_KEY;
  * Obtiene todos los restaurantes
  * @returns {Promise<Array>} Lista de restaurantes
  */
-export const getRestaurants = async () => {
+export const getRestaurants = () => {
   try {
-    // En desarrollo: usa datos mock
-    console.log("aqui: ", API_URL);
-    if (!import.meta.env.VITE_API_BASE_URL) {
-        console.log("aqui22: ");
-      const mockData = await import("../../data/restaurants");
-      return mockData.default;
-    }
-
-    const response = await fetch(`${API_URL}/restaurants`);
-    console.log("response: ", response.json);
-    if (!response.ok) throw new Error("Error al obtener restaurantes");
-    return await response.json();
+    // Si usas localStorage:
+    const saved = localStorage.getItem('restaurants_data');
+    return saved ? JSON.parse(saved) : [...initialRestaurants]; // Asegura que siempre retorne array
+    
+    // Si usas backend:
+    // const response = await fetch('/api/restaurants');
+    // return await response.json();
   } catch (error) {
-    console.error("getRestaurants error:", error);
-    throw error;
+    console.error("Error loading restaurants:", error);
+    return [...initialRestaurants]; // Devuelve copia del array inicial
   }
 };
 
@@ -104,5 +99,24 @@ export const fetchRandomRestaurantImage = async () => {
   } catch (error) {
     console.warn("Error al cargar imagen de Pexels, usando placeholder");
     return "https://via.placeholder.com/500x350?text=Restaurant+Image";
+  }
+};
+
+export const getRestaurantById = async (id) => {
+  try {
+    const restaurants = await getRestaurants(); // Añade await si es async
+    
+    // Asegúrate que el ID sea número (depende de cómo lo guardas)
+    const restaurantId = Number(id);
+    const found = restaurants.find(r => r.id === restaurantId);
+    
+    if (!found) {
+      throw new Error(`Restaurante con ID ${id} no encontrado`);
+    }
+    
+    return found;
+  } catch (error) {
+    console.error("Error fetching restaurant:", error);
+    throw error;
   }
 };

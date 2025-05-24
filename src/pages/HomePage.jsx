@@ -48,7 +48,7 @@ export const HomePage = () => {
       ) : (
         <Grid container spacing={3}>
           {restaurants.map((restaurant) => (
-            <Grid key={restaurant.id} size={{ xs: 12, sm: 6, md: 4 }}>
+            <Grid key={restaurant.id} size={{ xs: 12, sm: 12, md: 6, xl: 4 }} item>
               <RestaurantCard
                 {...restaurant}
                 onViewMore={() => navigate(`/restaurants/${restaurant.id}`)} // Para futura página detalle
