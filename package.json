@@ -2,8 +2,7 @@
   "name": "restaurants_suggestion",
   "private": true,
   "version": "0.0.0",
-  "homepage": "https://luthors.github.io/restaurants_suggestion",
-  "description": "A React application for suggesting restaurants based on user preferences.",
+  "homepage": "https://luthors.github.io/restaurants_suggestion/",
   "type": "module",
   "scripts": {
     "dev": "vite",
