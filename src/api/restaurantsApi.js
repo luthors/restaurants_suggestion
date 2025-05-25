@@ -1,4 +1,8 @@
+import { restaurants as initialRestaurants } from "./../../data/restaurants";
 // src/api/restaurantsApi.js
+
+import { data } from "react-router";
+import restaurants from "../../data/restaurants";
 
 const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
 const PEXELS_API_KEY = import.meta.env.VITE_PEXELS_API_KEY;
@@ -7,18 +11,15 @@ const PEXELS_API_KEY = import.meta.env.VITE_PEXELS_API_KEY;
  * Obtiene todos los restaurantes
  * @returns {Promise<Array>} Lista de restaurantes
  */
+
 export const getRestaurants = () => {
   try {
-    // Si usas localStorage:
-    const saved = localStorage.getItem('restaurants_data');
-    return saved ? JSON.parse(saved) : [...initialRestaurants]; // Asegura que siempre retorne array
-    
-    // Si usas backend:
-    // const response = await fetch('/api/restaurants');
-    // return await response.json();
+    // Si usa localStorage:
+    const saved = localStorage.getItem("restaurants_data");
+    return saved ? JSON.parse(saved) : [...initialRestaurants]; // Usa los datos importados
   } catch (error) {
     console.error("Error loading restaurants:", error);
-    return [...initialRestaurants]; // Devuelve copia del array inicial
+    return [...initialRestaurants]; // Devuelve copia del array importado
   }
 };
 
@@ -31,10 +32,9 @@ export const createRestaurant = async (restaurantData) => {
   try {
     // Si no hay backend, simula creación
     if (!import.meta.env.VITE_API_BASE_URL) {
-        console.log("aqui11: ");
-        console.log(restaurantData.json)
+      console.log("aqui11: ");
+      console.log(restaurantData.json);
       return {
-        
         ...restaurantData,
         id: Math.floor(Math.random() * 1000),
         image: await fetchRandomRestaurantImage(),
@@ -85,35 +85,34 @@ export const searchRestaurants = async (query) => {
  * @returns {Promise<String>} URL de la imagen
  */
 export const fetchRandomRestaurantImage = async () => {
-  if (!PEXELS_API_KEY) {
-    return "https://images.pexels.com/photos/262978/pexels-photo-262978.jpeg?auto=compress&cs=tinysrgb&w=500&h=350";
-  }
-
   try {
-    const response = await fetch(`https://api.pexels.com/v1/search?query=restaurant+colombia&per_page=10`, {
-      headers: { Authorization: PEXELS_API_KEY },
+    const query = "restaurant+colombia";
+    const response = await fetch(`https://api.pexels.com/v1/search?query=${query}&per_page=10`, {
+      headers: {
+        Authorization: "A4yv11ySwO8MRQR0nXp2tqSrZqswQ5V6s22IpjWuTVBZGPunh6QecgeZ",
+      },
     });
     const data = await response.json();
-    const randomPhoto = data.photos[Math.floor(Math.random() * data.photos.length)];
-    return randomPhoto.src.medium;
+    const randomImage = data.photos[Math.floor(Math.random() * data.photos.length)];
+    return randomImage.src.large;
   } catch (error) {
-    console.warn("Error al cargar imagen de Pexels, usando placeholder");
-    return "https://via.placeholder.com/500x350?text=Restaurant+Image";
+    console.warn("Error fetching image from Pexels, using placeholder");
+    return "/default-restaurant.jpg"; // Imagen local de respaldo
   }
 };
 
 export const getRestaurantById = async (id) => {
   try {
     const restaurants = await getRestaurants(); // Añade await si es async
-    
+
     // Asegúrate que el ID sea número (depende de cómo lo guardas)
     const restaurantId = Number(id);
-    const found = restaurants.find(r => r.id === restaurantId);
-    
+    const found = restaurants.find((r) => r.id === restaurantId);
+
     if (!found) {
       throw new Error(`Restaurante con ID ${id} no encontrado`);
     }
-    
+
     return found;
   } catch (error) {
     console.error("Error fetching restaurant:", error);

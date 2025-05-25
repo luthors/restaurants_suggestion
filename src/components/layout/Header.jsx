@@ -1,10 +1,17 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { AppBar, Toolbar, IconButton, InputAdornment, TextField, Box, Button, Typography } from "@mui/material";
-import { Search as SearchIcon, Restaurant as RestaurantIcon, Favorite } from "@mui/icons-material";
+import {
+  Search as SearchIcon,
+  LightMode as LightModeIcon,
+  DarkMode as DarkModeIcon,
+  Restaurant as RestaurantIcon,
+  Favorite,
+} from "@mui/icons-material";
 import { Link } from "react-router";
 
 export const Header = () => {
+  const [darkMode, setDarkMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
@@ -14,6 +21,10 @@ export const Header = () => {
       navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
       setSearchQuery("");
     }
+  };
+  const toggleTheme = () => {
+    setDarkMode(!darkMode);
+    document.body.classList.toggle("dark-theme"); // Aplica la clase al body
   };
 
   return (
@@ -82,8 +93,8 @@ export const Header = () => {
           />
         </Box>
         <Button component={Link} to="/favorites" color="inherit" startIcon={<Favorite />}>
-        Favoritos
-      </Button>
+          Favoritos
+        </Button>
         {/* Menú derecho */}
         <Box sx={{ display: "flex", gap: 1 }}>
           <Button
@@ -99,8 +110,14 @@ export const Header = () => {
             Blog
           </Button>
         </Box>
+        <IconButton
+          onClick={toggleTheme}
+          color="inherit" // Hereda el color del tema (útil para modo oscuro)
+          aria-label="Cambiar tema"
+        >
+          {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
+        </IconButton>
       </Toolbar>
-      
     </AppBar>
   );
 };

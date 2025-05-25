@@ -5,7 +5,7 @@ import { AppRouter } from "./router/AppRouter";
 
 export function App() {
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }} >
       <Header />
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
         <AppRouter />

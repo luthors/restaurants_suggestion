@@ -1,5 +1,5 @@
 //import { restaurants as initialRestaurants } from './restaurants';
-import { getRestaurants } from "../src/api/restaurantsApi";
+import { fetchRandomRestaurantImage, getRestaurants } from "../src/api/restaurantsApi";
 import { restaurants as res } from "../data/restaurants";
 
 const initialRestaurants = getRestaurants();
@@ -14,13 +14,11 @@ export const loadRestaurants = () => {
     const data = initialRestaurants.then((data) => {
       console.log("initialRestaurants -->: ", data);
       // sale este error  TypeError: Cannot read properties of undefined (reading 'map')
-     const savedData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || data;
-        console.log("savedData: ", savedData);
-      
+      const savedData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || data;
+      console.log("savedData: ", savedData);
+
       console.log("Array.isArray(savedData): ", Array.isArray(savedData));
-      
-    
-    
+
       return savedData;
     });
   } catch (error) {
@@ -41,22 +39,44 @@ export const saveRestaurants = (data) => {
 };
 
 // Añadir nuevo restaurante
-export const addRestaurant = (restaurant) => {
-  const currentData = res;
-  console.log("currentData+: ", currentData);
+export const addRestaurant = async (restaurant) => {
+  try {
+    // 1. Obtener datos actuales
+    const currentData = getRestaurants();
 
-  const newId = res.length + 1;
+    // 2. Generar nuevo ID (asegurando que sea único)
+    const newId = currentData.length > 0 ? Math.max(...currentData.map((r) => r.id)) + 1 : 1;
 
-  const newRestaurant = {
-    ...restaurant,
-    id: newId,
-    image: restaurant.image || "/default-restaurant.jpg",
-  };
+    // 3. Obtener imagen aleatoria de Pexels si no se proporcionó
+    let imageUrl = restaurant.image;
+    if (!imageUrl) {
+      imageUrl = await fetchRandomRestaurantImage();
+    }
 
-  console.log("newRestaurant: ", newRestaurant);
+    // 4. Crear nuevo restaurante
+    const newRestaurant = {
+      ...restaurant,
+      id: newId,
+      image: imageUrl,
+      long_description: restaurant.long_description || restaurant.description,
+      phone: formatPhoneNumber(restaurant.phone), // Formatear teléfono
+    };
 
-  const updatedData = [...currentData, newRestaurant];
-  console.log("updatedData: ", updatedData);
-  saveRestaurants(updatedData);
-  return newRestaurant;
+    // 5. Actualizar y guardar datos
+    const updatedData = [...currentData, newRestaurant];
+    saveRestaurants(updatedData);
+
+    return newRestaurant;
+  } catch (error) {
+    console.error("Error adding restaurant:", error);
+    throw error;
+  }
+};
+
+export const formatPhoneNumber = (phone) => {
+  if (!phone) return '';
+  // Formato: +57 XXX XXX XXXX
+  const cleaned = phone.replace(/\D/g, '');
+  const match = cleaned.match(/^(\d{2})(\d{3})(\d{3})(\d{4})$/);
+  return match ? `+${match[1]} ${match[2]} ${match[3]} ${match[4]}` : phone;
 };

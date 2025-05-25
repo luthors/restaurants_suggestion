@@ -1,8 +1,10 @@
 import { createTheme } from "@mui/material";
 import { red } from "@mui/material/colors";
 
-export const purpleTheme = createTheme({
-  palette: {
+export const purpleTheme = (mode = "light") => { // Parámetro para modo claro/oscuro
+  return createTheme({
+    palette: {
+      mode: mode, 
     primary: {
       main: "#262254"
     },
@@ -13,4 +15,5 @@ export const purpleTheme = createTheme({
       main: red.A400
     }
   }
-})
+});
+};
