@@ -9,6 +9,7 @@ export const SearchPage = () => {
   const query = searchParams.get("q") || "";
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -26,6 +27,8 @@ export const SearchPage = () => {
     };
     fetchResults();
   }, [query]);
+
+  
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>

@@ -59,25 +59,38 @@ export const createRestaurant = async (restaurantData) => {
  * @param {String} query - Término de búsqueda
  * @returns {Promise<Array>} Restaurantes filtrados
  */
-export const searchRestaurants = async (query) => {
-  try {
-    // En desarrollo: filtra los mock data
-    if (!import.meta.env.VITE_API_BASE_URL) {
-      const mockData = await import("../../data/restaurants");
-      return mockData.default.filter(
-        (restaurant) =>
-          restaurant.name.toLowerCase().includes(query.toLowerCase()) ||
-          restaurant.city.toLowerCase().includes(query.toLowerCase())
-      );
-    }
+export const searchRestaurants = (query) => {
+  const restaurants = getRestaurants();
 
-    const response = await fetch(`${API_URL}/restaurants?q=${query}`);
-    if (!response.ok) throw new Error("Error en la búsqueda");
-    return await response.json();
-  } catch (error) {
-    console.error("searchRestaurants error:", error);
-    throw error;
-  }
+  if (!query.trim()) return restaurants;
+
+  const searchTerms = query
+    .toLowerCase()
+    .split(" ")
+    .filter((term) => term.length > 0);
+
+  return restaurants
+    .map((restaurant) => {
+      let score = 0;
+      const lowerName = restaurant.name.toLowerCase();
+      const lowerCity = restaurant.city.toLowerCase();
+      const lowerDesc = restaurant.description.toLowerCase();
+
+      searchTerms.forEach((term) => {
+        // Ponderación: nombre (3pts), ciudad (2pts), descripción (1pt)
+        if (lowerName.includes(term)) score += 3;
+        if (lowerCity.includes(term)) score += 2;
+        if (lowerDesc.includes(term)) score += 1;
+      });
+
+      return { ...restaurant, score };
+    })
+    .filter((result) => result.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .map((item) => {
+      const { score, ...restaurant } = item;
+      return restaurant;
+    });
 };
 
 /**
