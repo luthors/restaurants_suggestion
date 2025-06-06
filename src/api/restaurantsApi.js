@@ -1,9 +1,5 @@
 import { restaurants as initialRestaurants } from "./../../data/restaurants";
 // src/api/restaurantsApi.js
-
-import { data } from "react-router";
-import restaurants from "../../data/restaurants";
-
 const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
 const PEXELS_API_KEY = import.meta.env.VITE_PEXELS_API_KEY;
 

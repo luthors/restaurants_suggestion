@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
-import { getRestaurantById } from "../api/restaurantsApi";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../firebase/config"; // Asegúrate de tener tu configuración de Firebase
 import { Box, Typography, Button, Chip, Divider, Stack, IconButton, Paper, Rating } from "@mui/material";
 import { ArrowBack, LocationOn, Phone, Favorite, FavoriteBorder } from "@mui/icons-material";
 import { isFavorite, toggleFavorite } from "../utils/favorites";
@@ -13,25 +14,41 @@ export const RestaurantDetailPage = () => {
   const [restaurant, setRestaurant] = useState(null);
   const [favorite, setFavorite] = useState(false);
   const [location, setLocation] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const loadData = async () => {
+    const loadRestaurant = async () => {
       try {
-        const data = await getRestaurantById(id);
-        setRestaurant(data);
-        setFavorite(isFavorite(data.id));
-      } catch (error) {
-        console.error("Error loading restaurant:", error);
-        navigate("/not-found"); // Redirige si no existe
+        setLoading(true);
+        const docRef = doc(db, "restaurants", id);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          setRestaurant({ id: docSnap.id, ...docSnap.data() });
+          setFavorite(isFavorite(docSnap.id));
+        } else {
+          navigate("/not-found");
+        }
+      } catch (err) {
+        console.error("Error loading restaurant:", err);
+        setError("Error al cargar el restaurante");
+      } finally {
+        setLoading(false);
       }
     };
-    loadData();
+
+    loadRestaurant();
   }, [id, navigate]);
 
   useEffect(() => {
     const loadLocation = async () => {
-      const coords = await geocodeAddress(`${restaurant.address}, ${restaurant.city}`);
-      setLocation(coords);
+      try {
+        const coords = await geocodeAddress(`${restaurant.address}, ${restaurant.city}`);
+        setLocation(coords);
+      } catch (err) {
+        console.error("Error geocoding address:", err);
+      }
     };
 
     if (restaurant) loadLocation();
@@ -42,7 +59,9 @@ export const RestaurantDetailPage = () => {
     setFavorite(!favorite);
   };
 
-  if (!restaurant) return <div>Cargando...</div>;
+  if (loading) return <div>Cargando...</div>;
+  if (error) return <div>{error}</div>;
+  if (!restaurant) return null;
 
   return (
     <Box sx={{ maxWidth: 800, mx: "auto", p: 3 }}>
@@ -79,7 +98,7 @@ export const RestaurantDetailPage = () => {
       <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
         <Chip icon={<LocationOn />} label={restaurant.city} variant="outlined" />
         <Chip icon={<Phone />} label={restaurant.phone} variant="outlined" />
-        <Rating value={4.5} precision={0.5} readOnly />
+        <Rating value={restaurant.rating || 4.5} precision={0.5} readOnly />
       </Stack>
 
       <Divider sx={{ my: 3 }} />
@@ -104,12 +123,12 @@ export const RestaurantDetailPage = () => {
         </Typography>
       </Box>
 
-      {/* Mapa de ubicación (placeholder) */}
+      {/* Mapa de ubicación */}
       <Box sx={{ mb: 4 }}>
         <Typography variant="h5" gutterBottom>
           Ubicación {location && `(${location.lat}, ${location.lng})`}
         </Typography>
-        <LocationMap lat={location?.lat} lng={location?.lng} address={(restaurant.address, restaurant.city)} />
+        <LocationMap lat={location?.lat} lng={location?.lng} address={`${restaurant.address}, ${restaurant.city}`} />
         <Typography variant="body2" sx={{ mt: 1 }}>
           Dirección exacta: {restaurant.address}, {restaurant.city}
         </Typography>

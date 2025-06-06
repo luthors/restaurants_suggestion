@@ -5,8 +5,7 @@ import { isFavorite, toggleFavorite } from "../../utils/favorites";
 import { useNavigate } from "react-router";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import PhoneIcon from "@mui/icons-material/Phone";
-import DescriptionIcon from '@mui/icons-material/Description';
-
+import DescriptionIcon from "@mui/icons-material/Description";
 
 export const RestaurantCard = ({ id, name, address, city, description, phone, image }) => {
   const navigate = useNavigate();
@@ -67,7 +66,7 @@ export const RestaurantCard = ({ id, name, address, city, description, phone, im
           <Typography variant="body2" color="text.secondary">
             {description}
           </Typography>
-        </Box>      
+        </Box>
 
         <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
           <PhoneIcon color="primary" sx={{ mr: 0.5, fontSize: "1rem" }} />

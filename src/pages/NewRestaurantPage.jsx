@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Container, TextField, Button, Typography, Stack, CircularProgress, Box } from "@mui/material";
 import { useNavigate } from "react-router";
-import { createRestaurant } from "../api/restaurantsApi";
-import { addRestaurant } from "../../data/persistentStorage";
+import { fetchRandomRestaurantImage } from "../api/restaurantsApi";
+import { addRestaurant } from "../service/restaurantService";
+import { CustomAlert } from "../components/ui/CustomAlert";
 
 export const NewRestaurantPage = () => {
   const [formData, setFormData] = useState({
@@ -16,29 +17,46 @@ export const NewRestaurantPage = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const [alert, setAlert] = useState({
+    open: false,
+    severity: "success",
+    message: "",
+  });
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     try {
-      const result = addRestaurant(formData);
-      if (result) {
-        alert(`Restaurante "${result.name}" guardado con ID: ${result.id}`);
-        navigate("/home");
-      }
-
-      //await createRestaurant(formData);
-
-      //navigate("/home", { state: { message: "Restaurante creado con éxito!" } });
+      setAlert({
+        open: true,
+        severity: "success",
+        message: "¡Restaurante creado exitosamente!",
+      });
+      await addRestaurant({
+        name: formData.name,
+        address: formData.address,
+        city: formData.city,
+        description: formData.description,
+        phone: formData.phone,
+        image: formData.image || (await fetchRandomRestaurantImage()),
+      });
+      navigate("/home");
     } catch (error) {
-      console.error("Error creating restaurant:", error);
-    } finally {
-      setLoading(false);
+      console.error("Error saving restaurant:", error);
+      setAlert({
+        open: true,
+        severity: "error",
+        message: "Error al crear el restaurante: " + error.message,
+      });
     }
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleCloseAlert = () => {
+    setAlert({ ...alert, open: false });
   };
 
   return (
@@ -84,7 +102,6 @@ export const NewRestaurantPage = () => {
             multiline
             rows={4}
           />
-
           <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
             <Button variant="outlined" onClick={() => navigate("/home")}>
               Cancelar
@@ -100,6 +117,7 @@ export const NewRestaurantPage = () => {
           </Box>
         </Stack>
       </form>
+      <CustomAlert open={alert.open} onClose={handleCloseAlert} severity={alert.severity} message={alert.message} />
     </Container>
   );
 };
